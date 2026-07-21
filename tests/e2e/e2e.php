@@ -48,36 +48,50 @@ $origPermClass = $config->userPermissionClass;
 $fake = new CRM_Core_Permission_UnitTests();
 $config->userPermissionClass = $fake;
 try {
-  $fake->permissions = ['access CiviCRM'];
-  $denied = FALSE;
-  try {
-    civicrm_api3('FormProcessor', 'e2e_fp', ['check_permissions' => 1]);
-  }
-  catch (\Throwable $e) {
-    if (stripos($e->getMessage(), 'authoriz') !== FALSE || stripos($e->getMessage(), 'permission') !== FALSE) {
-      $denied = TRUE;
-    }
-    else {
-      $fail('call without permission failed for an unexpected reason: ' . $e->getMessage());
-    }
-  }
-  if (!$denied) {
-    $fail('API call WITHOUT the permission was not rejected');
-  }
-  echo "enforcement: call without '$perm' rejected\n";
+  $invoke = [
+    'APIv3' => function () {
+      civicrm_api3('FormProcessor', 'e2e_fp', ['check_permissions' => 1]);
+    },
+    'APIv4' => function () {
+      civicrm_api4('FormProcessor_e2e_fp', 'save', [
+        'records' => [[]],
+        'checkPermissions' => TRUE,
+      ]);
+    },
+  ];
 
-  $fake->permissions = ['access CiviCRM', $perm];
-  try {
-    civicrm_api3('FormProcessor', 'e2e_fp', ['check_permissions' => 1]);
-  }
-  catch (\Throwable $e) {
-    if (stripos($e->getMessage(), 'authoriz') !== FALSE) {
-      $fail('API call WITH the permission was still rejected: ' . $e->getMessage());
+  foreach ($invoke as $apiVersion => $call) {
+    $fake->permissions = ['access CiviCRM'];
+    $denied = FALSE;
+    try {
+      $call();
     }
-    // Any non-authorization error (e.g. the empty processor has no actions)
-    // means the permission gate itself passed — good enough here.
+    catch (\Throwable $e) {
+      if (stripos($e->getMessage(), 'authoriz') !== FALSE || stripos($e->getMessage(), 'permission') !== FALSE) {
+        $denied = TRUE;
+      }
+      else {
+        $fail("$apiVersion call without permission failed for an unexpected reason: " . $e->getMessage());
+      }
+    }
+    if (!$denied) {
+      $fail("$apiVersion call WITHOUT the permission was not rejected");
+    }
+    echo "enforcement ($apiVersion): call without '$perm' rejected\n";
+
+    $fake->permissions = ['access CiviCRM', $perm];
+    try {
+      $call();
+    }
+    catch (\Throwable $e) {
+      if (stripos($e->getMessage(), 'authoriz') !== FALSE) {
+        $fail("$apiVersion call WITH the permission was still rejected: " . $e->getMessage());
+      }
+      // Any non-authorization error (e.g. the empty processor has no actions)
+      // means the permission gate itself passed — good enough here.
+    }
+    echo "enforcement ($apiVersion): call with '$perm' passed the permission gate\n";
   }
-  echo "enforcement: call with '$perm' passed the permission gate\n";
 }
 finally {
   $config->userPermissionClass = $origPermClass;

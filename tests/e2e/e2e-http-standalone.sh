@@ -35,20 +35,29 @@ civicrm_api3("System", "flush", []);
 echo "setup done\n";
 '
 
-call() {
+call_v3() {
   curl -s -X POST "$BASE_URL/civicrm/ajax/rest" \
     -H "X-Civi-Auth: Bearer $API_KEY" \
     --data 'entity=FormProcessor&action=e2e_fp&json=1'
 }
 
-echo "--- call without permission"
-RESP="$(call)"
-echo "$RESP"
-if ! echo "$RESP" | grep -qiE 'authoriz|permission'; then
-  echo "E2E-HTTP FAIL: call without permission was NOT rejected" >&2
-  exit 1
-fi
-echo "rejected as expected"
+call_v4() {
+  curl -s -X POST "$BASE_URL/civicrm/ajax/api4/FormProcessor_e2e_fp/save" \
+    -H "X-Civi-Auth: Bearer $API_KEY" \
+    -H 'X-Requested-With: XMLHttpRequest' \
+    --data-urlencode 'params={"records":[{}]}'
+}
+
+for v in v3 v4; do
+  echo "--- $v call without permission"
+  RESP="$(call_$v)"
+  echo "$RESP"
+  if ! echo "$RESP" | grep -qiE 'authoriz|permission|"status":403'; then
+    echo "E2E-HTTP FAIL: $v call without permission was NOT rejected" >&2
+    exit 1
+  fi
+  echo "$v rejected as expected"
+done
 
 echo "--- grant permission to role, call again"
 cv ev '
@@ -60,10 +69,14 @@ $perms[] = "e2e fp perm";
 civicrm_api3("System", "flush", []);
 echo "granted\n";
 '
-RESP="$(call)"
-echo "$RESP"
-if echo "$RESP" | grep -qiE 'authoriz|API permission check failed'; then
-  echo "E2E-HTTP FAIL: call WITH permission was still rejected" >&2
-  exit 1
-fi
+for v in v3 v4; do
+  echo "--- $v call with permission"
+  RESP="$(call_$v)"
+  echo "$RESP"
+  if echo "$RESP" | grep -qiE 'authoriz|API permission check failed|"status":403'; then
+    echo "E2E-HTTP FAIL: $v call WITH permission was still rejected" >&2
+    exit 1
+  fi
+  echo "$v passed"
+done
 echo "E2E-HTTP PASS"
