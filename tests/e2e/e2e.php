@@ -39,6 +39,50 @@ if (!isset($permissions[$perm])) {
 }
 echo "registered: '$perm'\n";
 
+// Enforcement: form_processor's alterAPIPermissions gate must reject a caller
+// without the permission and accept one with it. Simulated in-process via a
+// fake permission class; the real HTTP/authx path is covered separately on
+// Standalone (tests/e2e/e2e-http-standalone.sh).
+$config = CRM_Core_Config::singleton();
+$origPermClass = $config->userPermissionClass;
+$fake = new CRM_Core_Permission_UnitTests();
+$config->userPermissionClass = $fake;
+try {
+  $fake->permissions = ['access CiviCRM'];
+  $denied = FALSE;
+  try {
+    civicrm_api3('FormProcessor', 'e2e_fp', ['check_permissions' => 1]);
+  }
+  catch (\Throwable $e) {
+    if (stripos($e->getMessage(), 'authoriz') !== FALSE || stripos($e->getMessage(), 'permission') !== FALSE) {
+      $denied = TRUE;
+    }
+    else {
+      $fail('call without permission failed for an unexpected reason: ' . $e->getMessage());
+    }
+  }
+  if (!$denied) {
+    $fail('API call WITHOUT the permission was not rejected');
+  }
+  echo "enforcement: call without '$perm' rejected\n";
+
+  $fake->permissions = ['access CiviCRM', $perm];
+  try {
+    civicrm_api3('FormProcessor', 'e2e_fp', ['check_permissions' => 1]);
+  }
+  catch (\Throwable $e) {
+    if (stripos($e->getMessage(), 'authoriz') !== FALSE) {
+      $fail('API call WITH the permission was still rejected: ' . $e->getMessage());
+    }
+    // Any non-authorization error (e.g. the empty processor has no actions)
+    // means the permission gate itself passed — good enough here.
+  }
+  echo "enforcement: call with '$perm' passed the permission gate\n";
+}
+finally {
+  $config->userPermissionClass = $origPermClass;
+}
+
 if (CIVICRM_UF === 'Standalone') {
   $role = \Civi\Api4\Role::get(FALSE)
     ->addWhere('name', '=', 'staff')

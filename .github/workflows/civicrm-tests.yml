@@ -43,6 +43,11 @@ jobs:
           docker compose -f docker-compose.ci.yml exec -T app \
             bash -c "cd /var/www/html/ext/formprocessorperms && cv scr tests/e2e/e2e.php"
 
+      - name: E2E over HTTP (authx api_key enforcement)
+        run: |
+          docker compose -f docker-compose.ci.yml exec -T app \
+            bash -c "cd /var/www/html/ext/formprocessorperms && tests/e2e/e2e-http-standalone.sh"
+
       - name: Logs on failure
         if: failure()
         run: docker compose -f docker-compose.ci.yml logs app
