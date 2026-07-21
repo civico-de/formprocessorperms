@@ -1,0 +1,31 @@
+# CMS-flavor CI stack (Drupal 10/11, WordPress, Joomla) via civikitchen
+# buildkit images. First boot runs `civibuild reinstall`; the image HEALTHCHECK
+# turns healthy once the site is provisioned, so `up -d --wait` blocks until
+# ready. The workflow matrix supplies IMAGE and CK_EXT_BASE (the flavor's
+# CiviCRM extensionsDir).
+services:
+  app:
+    image: ${IMAGE:-ghcr.io/jfilter/civikitchen:drupal10}
+    pull_policy: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    environment:
+      CIVICRM_DB_HOST: db
+      CIVICRM_DB_ROOT_PASSWORD: root
+      CIVIKITCHEN_SITE_URL: "http://localhost:8080"
+      CIVIKITCHEN_EXTRA_EXTENSIONS: "action-provider,form-processor"
+    volumes:
+      - .:${CK_EXT_BASE:-/home/buildkit/buildkit/build/site/web/sites/default/files/civicrm/ext}/formprocessorperms
+
+  db:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10

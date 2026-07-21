@@ -1,0 +1,112 @@
+name: CiviCRM tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  standalone:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Boot CiviCRM (civikitchen standalone)
+        run: docker compose -f docker-compose.ci.yml up -d --pull always
+
+      - name: Wait for the auto-install
+        run: |
+          for _ in $(seq 1 120); do
+            if curl -fs http://localhost:8080/civicrm/login >/dev/null; then
+              echo "ready"; exit 0
+            fi
+            sleep 5
+          done
+          echo "site never became reachable" >&2
+          docker compose -f docker-compose.ci.yml logs app
+          exit 1
+
+      - name: Enable the extension
+        run: docker compose -f docker-compose.ci.yml exec -T app cv ext:enable formprocessorperms
+
+      - name: Run headless phpunit
+        run: |
+          docker compose -f docker-compose.ci.yml exec -T -e CIVICRM_UF=UnitTests app \
+            bash -c "cd /var/www/html/ext/formprocessorperms && phpunit"
+
+      - name: E2E against the live site
+        run: |
+          docker compose -f docker-compose.ci.yml exec -T app \
+            bash -c "cd /var/www/html/ext/formprocessorperms && cv scr tests/e2e/e2e.php"
+
+      - name: Logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.ci.yml logs app
+
+  cms:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flavor: drupal10
+            image: ghcr.io/jfilter/civikitchen:drupal10
+            ext_base: /home/buildkit/buildkit/build/site/web/sites/default/files/civicrm/ext
+            drupal: true
+          - flavor: drupal11
+            image: ghcr.io/jfilter/civikitchen:drupal11
+            ext_base: /home/buildkit/buildkit/build/site/web/sites/default/files/civicrm/ext
+            drupal: true
+          - flavor: wordpress
+            image: ghcr.io/jfilter/civikitchen:wordpress
+            ext_base: /home/buildkit/buildkit/build/site/web/wp-content/uploads/civicrm/ext
+            drupal: false
+          - flavor: joomla
+            image: ghcr.io/jfilter/civikitchen:joomla
+            ext_base: /home/buildkit/buildkit/build/site/web/media/civicrm/ext
+            drupal: false
+    name: cms (${{ matrix.flavor }})
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Boot CiviCRM (first boot runs civibuild reinstall)
+        env:
+          IMAGE: ${{ matrix.image }}
+          CK_EXT_BASE: ${{ matrix.ext_base }}
+        run: docker compose -f docker-compose.ci-cms.yml up -d --wait --wait-timeout 1800
+
+      # On the CMS images cv must run inside the civibuild site tree.
+      - name: Enable the extension
+        run: |
+          docker compose -f docker-compose.ci-cms.yml exec -T app \
+            bash -c "cd /home/buildkit/buildkit/build/site/web && cv ext:enable formprocessorperms"
+
+      - name: E2E against the live site
+        run: |
+          docker compose -f docker-compose.ci-cms.yml exec -T app \
+            bash -c "cd /home/buildkit/buildkit/build/site/web && cv scr ${{ matrix.ext_base }}/formprocessorperms/tests/e2e/e2e.php"
+
+      # Drupal-specific: the registered permission must surface in Drupal's
+      # own permission list (People → Permissions), which is the second half
+      # of what this extension exists for.
+      - name: Check Drupal permissions UI advertises the permission
+        if: ${{ matrix.drupal }}
+        run: |
+          docker compose -f docker-compose.ci-cms.yml exec -T app bash -c '
+            cd /home/buildkit/buildkit/build/site/web
+            drush cr
+            drush ev "
+              \$perms = array_keys(\Drupal::service(\"user.permissions\")->getPermissions());
+              \$hits = array_filter(\$perms, fn(\$p) => stripos(\$p, \"e2e fp perm\") !== FALSE);
+              if (!\$hits) { fwrite(STDERR, \"e2e fp perm not advertised to Drupal\n\"); exit(1); }
+              print \"Drupal advertises: \" . implode(\", \", \$hits) . \"\n\";
+            "'
+
+      - name: Logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.ci-cms.yml logs app
