@@ -5,6 +5,7 @@ declare(strict_types = 1);
 use Civi\Test\CiviEnvBuilder;
 use Civi\Test\HeadlessInterface;
 use Civi\Test\TransactionalInterface;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Checks that permission strings configured on Form Processor instances are
@@ -18,9 +19,7 @@ use Civi\Test\TransactionalInterface;
  *
  * @group headless
  */
-class CRM_Formprocessorperms_PermissionTest extends \PHPUnit\Framework\TestCase implements
-  HeadlessInterface,
-  TransactionalInterface {
+class CRM_Formprocessorperms_PermissionTest extends TestCase implements HeadlessInterface, TransactionalInterface {
 
   public function setUpHeadless(): CiviEnvBuilder {
     return \Civi\Test::headless()
@@ -30,6 +29,7 @@ class CRM_Formprocessorperms_PermissionTest extends \PHPUnit\Framework\TestCase 
   }
 
   public function testProcessorPermissionIsRegistered(): void {
+    // phpcs:ignore CiviKitchen.Legacy.NoLegacyCall.LegacyFunction -- FormProcessorInstance is APIv3-only.
     civicrm_api3('FormProcessorInstance', 'create', [
       'name' => 'test_fp',
       'title' => 'Test FP',
@@ -46,6 +46,7 @@ class CRM_Formprocessorperms_PermissionTest extends \PHPUnit\Framework\TestCase 
   }
 
   public function testProcessorWithoutPermissionRegistersNothing(): void {
+    // phpcs:ignore CiviKitchen.Legacy.NoLegacyCall.LegacyFunction -- FormProcessorInstance is APIv3-only.
     civicrm_api3('FormProcessorInstance', 'create', [
       'name' => 'test_fp_open',
       'title' => 'Open FP',

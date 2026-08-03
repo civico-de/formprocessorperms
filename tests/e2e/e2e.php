@@ -10,14 +10,16 @@
  */
 
 $fail = function (string $msg): void {
-  fwrite(STDERR, "E2E FAIL: $msg\n");
+  fwrite(STDERR, "E2E FAIL: {$msg}\n");
   exit(1);
 };
 
 $perm = 'e2e fp perm';
 
+// phpcs:ignore CiviKitchen.Legacy.NoLegacyCall.LegacyFunction -- FormProcessorInstance is APIv3-only.
 $existing = civicrm_api3('FormProcessorInstance', 'get', ['name' => 'e2e_fp']);
 if (empty($existing['count'])) {
+  // phpcs:ignore CiviKitchen.Legacy.NoLegacyCall.LegacyFunction -- FormProcessorInstance is APIv3-only.
   civicrm_api3('FormProcessorInstance', 'create', [
     'name' => 'e2e_fp',
     'title' => 'E2E FP',
@@ -27,6 +29,7 @@ if (empty($existing['count'])) {
   ]);
 }
 
+// phpcs:ignore CiviKitchen.Legacy.NoLegacyCall.LegacyFunction -- System.flush has no APIv4 equivalent.
 civicrm_api3('System', 'flush', []);
 // In-process: make sure neither our hook cache nor core's permission cache
 // serves a pre-create snapshot.
@@ -36,9 +39,9 @@ unset(\Civi::$statics['CRM_Core_Permission']);
 
 $permissions = CRM_Core_Permission::basicPermissions(TRUE);
 if (!isset($permissions[$perm])) {
-  $fail("'$perm' not in CRM_Core_Permission::basicPermissions() — registration broken");
+  $fail("'{$perm}' not in CRM_Core_Permission::basicPermissions() — registration broken");
 }
-echo "registered: '$perm'\n";
+echo "registered: '{$perm}'\n";
 
 // Enforcement: form_processor's alterAPIPermissions gate must reject a caller
 // without the permission and accept one with it. Simulated in-process via a
@@ -49,6 +52,7 @@ $origPermClass = $config->userPermissionClass;
 $fake = new CRM_Core_Permission_UnitTests();
 $config->userPermissionClass = $fake;
 try {
+  // phpcs:disable CiviKitchen.Legacy.NoLegacyCall.LegacyFunction -- the APIv3 gate is what is under test.
   $invoke = [
     'APIv3' => function () {
       civicrm_api3('FormProcessor', 'e2e_fp', ['check_permissions' => 1]);
@@ -60,6 +64,7 @@ try {
       ]);
     },
   ];
+  // phpcs:enable CiviKitchen.Legacy.NoLegacyCall.LegacyFunction
 
   foreach ($invoke as $apiVersion => $call) {
     $fake->permissions = ['access CiviCRM'];
@@ -68,17 +73,16 @@ try {
       $call();
     }
     catch (\Throwable $e) {
-      if (stripos($e->getMessage(), 'authoriz') !== FALSE || stripos($e->getMessage(), 'permission') !== FALSE) {
-        $denied = TRUE;
+      if (stripos($e->getMessage(), 'authoriz') === FALSE && stripos($e->getMessage(), 'permission') === FALSE) {
+        // $fail() exits, so reaching the next line means the call was denied.
+        $fail("{$apiVersion} call without permission failed for an unexpected reason: " . $e->getMessage());
       }
-      else {
-        $fail("$apiVersion call without permission failed for an unexpected reason: " . $e->getMessage());
-      }
+      $denied = TRUE;
     }
     if (!$denied) {
-      $fail("$apiVersion call WITHOUT the permission was not rejected");
+      $fail("{$apiVersion} call WITHOUT the permission was not rejected");
     }
-    echo "enforcement ($apiVersion): call without '$perm' rejected\n";
+    echo "enforcement ({$apiVersion}): call without '{$perm}' rejected\n";
 
     $fake->permissions = ['access CiviCRM', $perm];
     try {
@@ -86,13 +90,13 @@ try {
     }
     catch (\Throwable $e) {
       if (stripos($e->getMessage(), 'authoriz') !== FALSE) {
-        $fail("$apiVersion call WITH the permission was still rejected: " . $e->getMessage());
+        $fail("{$apiVersion} call WITH the permission was still rejected: " . $e->getMessage());
       }
 
       // Any non-authorization error (e.g. the empty processor has no actions)
       // means the permission gate itself passed — good enough here.
     }
-    echo "enforcement ($apiVersion): call with '$perm' passed the permission gate\n";
+    echo "enforcement ({$apiVersion}): call with '{$perm}' passed the permission gate\n";
   }
 }
 finally {
@@ -119,10 +123,10 @@ if (CIVICRM_UF === 'Standalone') {
     'SELECT permissions FROM civicrm_role WHERE id = %1',
     [1 => [$role['id'], 'Integer']],
   );
-  if (strpos((string) $db, $perm) === FALSE) {
-    $fail("'$perm' was stripped from civicrm_role on save — Standalone fix broken");
+  if (!str_contains((string) $db, $perm)) {
+    $fail("'{$perm}' was stripped from civicrm_role on save — Standalone fix broken");
   }
-  echo "role persistence: '$perm' survived Role save\n";
+  echo "role persistence: '{$perm}' survived Role save\n";
 }
 
 echo 'E2E PASS (' . CIVICRM_UF . ")\n";
