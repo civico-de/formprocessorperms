@@ -1,4 +1,5 @@
 <?php
+
 /**
  * End-to-end check, run against a real installed site: `cv scr tests/e2e/e2e.php`
  *
@@ -87,6 +88,7 @@ try {
       if (stripos($e->getMessage(), 'authoriz') !== FALSE) {
         $fail("$apiVersion call WITH the permission was still rejected: " . $e->getMessage());
       }
+
       // Any non-authorization error (e.g. the empty processor has no actions)
       // means the permission gate itself passed — good enough here.
     }
@@ -100,7 +102,8 @@ finally {
 if (CIVICRM_UF === 'Standalone') {
   $role = \Civi\Api4\Role::get(FALSE)
     ->addWhere('name', '=', 'staff')
-    ->execute()->first();
+    ->execute()
+    ->first();
   if (!$role) {
     $fail('no staff role found on Standalone');
   }
@@ -114,7 +117,7 @@ if (CIVICRM_UF === 'Standalone') {
     ->execute();
   $db = CRM_Core_DAO::singleValueQuery(
     'SELECT permissions FROM civicrm_role WHERE id = %1',
-    [1 => [$role['id'], 'Integer']]
+    [1 => [$role['id'], 'Integer']],
   );
   if (strpos((string) $db, $perm) === FALSE) {
     $fail("'$perm' was stripped from civicrm_role on save — Standalone fix broken");

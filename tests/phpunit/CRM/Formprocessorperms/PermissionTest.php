@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types = 1);
 
 use Civi\Test\CiviEnvBuilder;
@@ -17,7 +18,9 @@ use Civi\Test\TransactionalInterface;
  *
  * @group headless
  */
-class CRM_Formprocessorperms_PermissionTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, TransactionalInterface {
+class CRM_Formprocessorperms_PermissionTest extends \PHPUnit\Framework\TestCase implements
+  HeadlessInterface,
+  TransactionalInterface {
 
   public function setUpHeadless(): CiviEnvBuilder {
     return \Civi\Test::headless()

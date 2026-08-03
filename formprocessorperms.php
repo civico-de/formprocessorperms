@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types = 1);
 
 // phpcs:disable PSR1.Files.SideEffects
@@ -54,7 +55,7 @@ function formprocessorperms_civicrm_permission(array &$permissions): void {
     try {
       $dao = CRM_Core_DAO::executeQuery(
         "SELECT title, permission FROM civicrm_form_processor_instance
-         WHERE permission IS NOT NULL AND permission <> ''"
+         WHERE permission IS NOT NULL AND permission <> ''",
       );
       while ($dao->fetch()) {
         $cache[$dao->permission] = $dao->title;
