@@ -21,13 +21,17 @@ strings merely never appear in the permissions UI.
 
 ## Verify
 
-CI runs a Standalone job plus a CMS matrix; the same paths work locally:
+CI is the shared civikitchen pipeline (`.github/workflows/ci.yml` → cklint,
+ckconform, ckfmt, phpunit + coverage, phpstan) plus this repo's own E2E
+workflow (Standalone + CMS matrix). The same paths work locally:
 
 ```bash
-docker compose -f docker-compose.ci.yml up -d
-docker compose -f docker-compose.ci.yml exec -T app cv ext:enable formprocessorperms
-docker compose -f docker-compose.ci.yml exec -T -e CIVICRM_UF=UnitTests app \
-  bash -c "cd /var/www/html/ext/formprocessorperms && phpunit"
-docker compose -f docker-compose.ci.yml exec -T app \
+docker compose -f .docker/docker-compose.ci.yml up -d
+docker compose -f .docker/docker-compose.ci.yml exec -T -e CIVICRM_UF=UnitTests app \
+  bash -c "cd /var/www/html/ext/formprocessorperms && ckcoverage && cklint --all && ckconform && phpstan analyse"
+docker compose -f .docker/docker-compose.ci.yml exec -T app \
   bash -c "cd /var/www/html/ext/formprocessorperms && cv scr tests/e2e/e2e.php && tests/e2e/e2e-http-standalone.sh"
 ```
+
+Template-managed files come from civikitchen (`.ckconform` records the two
+deviations); refresh with `tools/ckinit.php --update .` from a checkout.

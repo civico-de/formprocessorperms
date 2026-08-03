@@ -47,8 +47,11 @@ function formprocessorperms_civicrm_enable(): void {
  * built, so an API call here would recurse into permission checking. The
  * try/catch covers the window where form_processor is absent or not yet
  * installed.
+ *
+ * @param array<string, mixed> $permissions
  */
 function formprocessorperms_civicrm_permission(array &$permissions): void {
+  /** @var array<string, string>|null $cache */
   $cache = &\Civi::$statics['formprocessorperms']['permissions'];
   if (!isset($cache)) {
     $cache = [];
@@ -57,6 +60,8 @@ function formprocessorperms_civicrm_permission(array &$permissions): void {
         "SELECT title, permission FROM civicrm_form_processor_instance
          WHERE permission IS NOT NULL AND permission <> ''",
       );
+      // The WHERE clause is what makes `permission` a non-empty string here.
+      /** @var \CRM_Core_DAO&object{permission: string, title: string} $dao */
       while ($dao->fetch()) {
         $cache[$dao->permission] = $dao->title;
       }

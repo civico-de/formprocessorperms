@@ -17,6 +17,9 @@ use PHPUnit\Framework\TestCase;
  * exist. This test covers the registration half; the strip/persist behavior
  * was verified manually against a Standalone instance.
  *
+ * The civicrm_api3() fixtures are deliberate: FormProcessorInstance is
+ * APIv3-only.
+ *
  * @group headless
  */
 class CRM_Formprocessorperms_PermissionTest extends TestCase implements HeadlessInterface, TransactionalInterface {
@@ -29,7 +32,6 @@ class CRM_Formprocessorperms_PermissionTest extends TestCase implements Headless
   }
 
   public function testProcessorPermissionIsRegistered(): void {
-    // phpcs:ignore CiviKitchen.Legacy.NoLegacyCall.LegacyFunction -- FormProcessorInstance is APIv3-only.
     civicrm_api3('FormProcessorInstance', 'create', [
       'name' => 'test_fp',
       'title' => 'Test FP',
@@ -46,7 +48,6 @@ class CRM_Formprocessorperms_PermissionTest extends TestCase implements Headless
   }
 
   public function testProcessorWithoutPermissionRegistersNothing(): void {
-    // phpcs:ignore CiviKitchen.Legacy.NoLegacyCall.LegacyFunction -- FormProcessorInstance is APIv3-only.
     civicrm_api3('FormProcessorInstance', 'create', [
       'name' => 'test_fp_open',
       'title' => 'Open FP',

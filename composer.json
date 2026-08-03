@@ -1,0 +1,23 @@
+{
+    "name": "civico-de/formprocessorperms",
+    "description": "Registers the per-processor permission strings of the Form Processor extension via hook_civicrm_permission.",
+    "type": "civicrm-ext",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Johannes Filter",
+            "email": "hi@jfilter.de"
+        }
+    ],
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-0": {
+            "CRM_": "."
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

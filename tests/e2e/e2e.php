@@ -7,6 +7,9 @@
  * formprocessorperms registers it. On Standalone additionally asserts the
  * original bug is fixed: the permission survives a Role save instead of being
  * silently stripped.
+ *
+ * The civicrm_api3() calls are deliberate: FormProcessorInstance and the
+ * permission gate under test are APIv3-only.
  */
 
 $fail = function (string $msg): void {
@@ -16,10 +19,8 @@ $fail = function (string $msg): void {
 
 $perm = 'e2e fp perm';
 
-// phpcs:ignore CiviKitchen.Legacy.NoLegacyCall.LegacyFunction -- FormProcessorInstance is APIv3-only.
 $existing = civicrm_api3('FormProcessorInstance', 'get', ['name' => 'e2e_fp']);
 if (empty($existing['count'])) {
-  // phpcs:ignore CiviKitchen.Legacy.NoLegacyCall.LegacyFunction -- FormProcessorInstance is APIv3-only.
   civicrm_api3('FormProcessorInstance', 'create', [
     'name' => 'e2e_fp',
     'title' => 'E2E FP',
@@ -29,7 +30,6 @@ if (empty($existing['count'])) {
   ]);
 }
 
-// phpcs:ignore CiviKitchen.Legacy.NoLegacyCall.LegacyFunction -- System.flush has no APIv4 equivalent.
 civicrm_api3('System', 'flush', []);
 // In-process: make sure neither our hook cache nor core's permission cache
 // serves a pre-create snapshot.
@@ -52,7 +52,6 @@ $origPermClass = $config->userPermissionClass;
 $fake = new CRM_Core_Permission_UnitTests();
 $config->userPermissionClass = $fake;
 try {
-  // phpcs:disable CiviKitchen.Legacy.NoLegacyCall.LegacyFunction -- the APIv3 gate is what is under test.
   $invoke = [
     'APIv3' => function () {
       civicrm_api3('FormProcessor', 'e2e_fp', ['check_permissions' => 1]);
@@ -64,7 +63,6 @@ try {
       ]);
     },
   ];
-  // phpcs:enable CiviKitchen.Legacy.NoLegacyCall.LegacyFunction
 
   foreach ($invoke as $apiVersion => $call) {
     $fake->permissions = ['access CiviCRM'];

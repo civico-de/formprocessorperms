@@ -1,0 +1,56 @@
+# CI stack — CiviCRM Standalone via civikitchen. Booted, tested against,
+# thrown away: no persistent volume.
+#
+#   docker compose -f .docker/docker-compose.ci.yml up -d --wait
+#   docker compose -f .docker/docker-compose.ci.yml exec -T -e CIVICRM_UF=UnitTests app \
+#     bash -c 'cd /var/www/html/ext/formprocessorperms && phpunit'
+#
+# DEVIATION from the civikitchen template (declared in .ckconform as
+# template_custom), for two reasons:
+#   * action-provider + form-processor are downloaded before formprocessorperms
+#     is enabled — the permission hook reads form_processor's own table;
+#   * port 8080 is published because tests/e2e/e2e-http-standalone.sh drives
+#     the real authx/REST path over HTTP.
+# Everything else is the template — keep it that way.
+
+# Explicit project name: compose otherwise derives it from the parent
+# directory, which is `.docker` in every repo here.
+name: formprocessorperms-ci
+
+services:
+  app:
+    image: ${CIVIKITCHEN_IMAGE:-ghcr.io/jfilter/civikitchen:v1}
+    pull_policy: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    environment:
+      CIVICRM_AUTO_INSTALL: "1"
+      CIVICRM_DB_HOST: db
+      CIVICRM_DB_NAME: civicrm
+      CIVICRM_DB_USER: civicrm
+      CIVICRM_DB_PASSWORD: civicrm
+      CIVIKITCHEN_SITE_URL: "http://localhost:8080"
+      CIVIKITCHEN_EXTRA_EXTENSIONS: "action-provider,form-processor"
+      CIVIKITCHEN_ENABLE_EXTENSIONS: "formprocessorperms"
+    volumes:
+      - ..:/var/www/html/ext/formprocessorperms
+      - ./init.d:/civikitchen-init.d:ro
+
+  db:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: civicrm
+      MYSQL_USER: civicrm
+      MYSQL_PASSWORD: civicrm
+    volumes:
+      # Headless tests need global grants for the <db>_test scratch database.
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10

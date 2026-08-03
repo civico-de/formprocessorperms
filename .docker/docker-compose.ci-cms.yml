@@ -3,6 +3,14 @@
 # turns healthy once the site is provisioned, so `up -d --wait` blocks until
 # ready. The workflow matrix supplies IMAGE and CK_EXT_BASE (the flavor's
 # CiviCRM extensionsDir).
+#
+# Not a civikitchen template file: the CMS matrix is this repo's own, because
+# the Drupal permissions UI is half of what the extension exists for.
+
+# Explicit project name — unnamed .docker/ stacks all become one project
+# called "docker" and share volumes across checkouts.
+name: formprocessorperms-ci-cms
+
 services:
   app:
     image: ${IMAGE:-ghcr.io/jfilter/civikitchen:drupal10}
@@ -18,7 +26,7 @@ services:
       CIVIKITCHEN_SITE_URL: "http://localhost:8080"
       CIVIKITCHEN_EXTRA_EXTENSIONS: "action-provider,form-processor"
     volumes:
-      - .:${CK_EXT_BASE:-/home/buildkit/buildkit/build/site/web/sites/default/files/civicrm/ext}/formprocessorperms
+      - ..:${CK_EXT_BASE:-/home/buildkit/buildkit/build/site/web/sites/default/files/civicrm/ext}/formprocessorperms
 
   db:
     image: mariadb:10.11
