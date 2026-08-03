@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 /**
  * End-to-end check, run against a real installed site: `cv scr tests/e2e/e2e.php`
  *
