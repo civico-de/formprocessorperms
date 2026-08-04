@@ -4,10 +4,11 @@ license=Proprietary
 npm_license=UNLICENSED
 copyright=civico GmbH
 
-# Measured 2026-08-03 (ckcoverage, standalone CI stack): 70.00% (14/20
-# statements) — the permission hook itself; the uncovered rest is the civix
-# config/install/enable trio. Ratchet up as it gains tests, never down.
-min_coverage=70
+# Measured 2026-08-04 (ckcoverage, standalone CI stack): 83.33% (20/24
+# statements) — the permission hook including its table-absent and
+# query-failure paths; the uncovered rest is the civix config/install/enable
+# trio. Ratchet up as it gains tests, never down.
+min_coverage=80
 
 # Two template files this repo deviates on.
 #
