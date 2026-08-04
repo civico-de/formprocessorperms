@@ -16,6 +16,9 @@ parameters:
 	# reported as redundant because of them. Also: PEAR-era signatures lie in
 	# their PHPDocs (a documented "array" can be a PEAR_Error).
 	treatPhpDocTypesAsCertain: false
+	# A typed property with no default is a runtime Error waiting for the one
+	# path that reads it before writing it; APIv4 action parameters are exempt.
+	checkUninitializedProperties: true
 	# The whole extension is one hook file — no Civi/, CRM/ or managed/ tree.
 	paths:
 		- formprocessorperms.php
@@ -28,6 +31,11 @@ parameters:
 	#	# - /var/www/html/core/ext/flexmailer/src
 	bootstrapFiles:
 		- phpstanBootstrap.php
+	civikitchen:
+		# Table belongs to the form_processor extension, not to core or to us,
+		# so ck.sql.unknownTable cannot find it in any catalog.
+		sqlKnownTables:
+			- civicrm_form_processor_instance
 	# ignoreErrors: only ever narrowly scoped (identifier + path + count) and
 	# carrying a comment that says WHY the report is wrong — never blanket
 	# patterns, never a baseline file.
