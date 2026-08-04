@@ -45,8 +45,8 @@ function formprocessorperms_civicrm_enable(): void {
  *
  * Reads via direct SQL: this hook runs while the permission list is being
  * built, so an API call here would recurse into permission checking. The
- * try/catch covers the window where form_processor is absent or not yet
- * installed.
+ * table check covers the window where form_processor is absent or not yet
+ * installed; the try/catch covers the race and reports anything else.
  *
  * @param array<string, mixed> $permissions
  */
@@ -55,19 +55,26 @@ function formprocessorperms_civicrm_permission(array &$permissions): void {
   $cache = &\Civi::$statics['formprocessorperms']['permissions'];
   if (!isset($cache)) {
     $cache = [];
-    try {
-      $dao = CRM_Core_DAO::executeQuery(
-        "SELECT title, permission FROM civicrm_form_processor_instance
-         WHERE permission IS NOT NULL AND permission <> ''",
-      );
-      // The WHERE clause is what makes `permission` a non-empty string here.
-      /** @var \CRM_Core_DAO&object{permission: string, title: string} $dao */
-      while ($dao->fetch()) {
-        $cache[$dao->permission] = $dao->title;
+    if (CRM_Core_DAO::checkTableExists('civicrm_form_processor_instance')) {
+      try {
+        $dao = CRM_Core_DAO::executeQuery(
+          "SELECT title, permission FROM civicrm_form_processor_instance
+           WHERE permission IS NOT NULL AND permission <> ''",
+        );
+        // The WHERE clause is what makes `permission` a non-empty string here.
+        /** @var \CRM_Core_DAO&object{permission: string, title: string} $dao */
+        while ($dao->fetch()) {
+          $cache[$dao->permission] = $dao->title;
+        }
       }
-    }
-    catch (\Throwable $e) {
-      $cache = [];
+      catch (\Throwable $e) {
+        // The table was there a moment ago, so this is a real failure: the
+        // permissions would silently vanish from every role screen.
+        \Civi::log()->error('formprocessorperms: reading form processor permissions failed', [
+          'exception' => $e,
+        ]);
+        $cache = [];
+      }
     }
   }
   foreach ($cache as $perm => $title) {
