@@ -24,7 +24,6 @@ services:
       CIVICRM_DB_HOST: db
       CIVICRM_DB_ROOT_PASSWORD: root
       CIVIKITCHEN_SITE_URL: "http://localhost:8080"
-      CIVIKITCHEN_EXTRA_EXTENSIONS: "action-provider,form-processor"
     volumes:
       - ..:${CK_EXT_BASE:-/home/buildkit/buildkit/build/site/web/sites/default/files/civicrm/ext}/formprocessorperms
 
