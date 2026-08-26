@@ -41,9 +41,8 @@ services:
       # Enable the mounted extension reproducibly on first boot. Add sibling
       # extensions here (comma-separated) instead of coupling them in info.xml
       # when the integration is optional by design.
-      # form-processor (and its action-provider dependency) is what this
-      # extension registers permissions for — useless without it.
-      CIVIKITCHEN_EXTRA_EXTENSIONS: "action-provider,form-processor"
+      # form-processor + action-provider (info.xml <requires>) are installed by
+      # the entrypoint — nothing to add here.
       CIVIKITCHEN_ENABLE_EXTENSIONS: "formprocessorperms"
     volumes:
       - ..:/var/www/html/ext/formprocessorperms

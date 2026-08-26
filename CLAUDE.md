@@ -12,7 +12,8 @@ strings merely never appear in the permissions UI.
 - The permission hook must read `civicrm_form_processor_instance` via direct
   SQL: it runs while the permission list is being built, and an API call
   there recurses into permission checking. Keep the `Civi::$statics` cache
-  and the table check for the form_processor-absent window; the try/catch
+  and the table check for the window where form_processor is disabled
+  underneath (info.xml declares it as <requires>, so it is present at enable time); the try/catch
   behind it logs at error level, because there a query really did fail.
 - The extension stays configuration-free and dependency-light; behavior
   changes belong in the hook, not in new settings.

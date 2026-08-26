@@ -32,6 +32,11 @@
     <comments>Listed versions. For example, specify both "4" and "5".</comments>
     <ver>5</ver>
   </smarty_compatibility>
+  <requires>
+    <!-- The permissions come from form_processor's instances; the hook still guards the table for the window where form_processor is disabled underneath. -->
+    <ext>action-provider</ext>
+    <ext>form-processor</ext>
+  </requires>
   <classloader>
     <psr0 prefix="CRM_" path="."/>
     <psr4 prefix="Civi\" path="Civi"/>
