@@ -22,10 +22,7 @@ class CRM_Formprocessorperms_PermissionFailureTest extends TestCase implements H
   private const BACKUP = 'civicrm_fpp_instance_backup';
 
   public function setUpHeadless(): CiviEnvBuilder {
-    return \Civi\Test::headless()
-      ->install(['action-provider', 'form-processor'])
-      ->installMe(__DIR__)
-      ->apply();
+    return ck_headless()->apply();
   }
 
   public function testDefensivePaths(): void {

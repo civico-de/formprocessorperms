@@ -25,10 +25,7 @@ use PHPUnit\Framework\TestCase;
 class CRM_Formprocessorperms_PermissionTest extends TestCase implements HeadlessInterface, TransactionalInterface {
 
   public function setUpHeadless(): CiviEnvBuilder {
-    return \Civi\Test::headless()
-      ->install(['action-provider', 'form-processor'])
-      ->installMe(__DIR__)
-      ->apply();
+    return ck_headless()->apply();
   }
 
   public function testProcessorPermissionIsRegistered(): void {
