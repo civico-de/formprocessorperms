@@ -25,3 +25,4 @@ template_custom=.docker/docker-compose.ci.yml,tests/e2e/lib.sh -- CI stack publi
 # Business hooks live in scan classes (AutoSubscriber/HookInterface); the
 # classic function form is reserved for pre-boot/lifecycle/return-value hooks.
 hook_style=listener
+renovate_preset=github>civico-de/renovate
