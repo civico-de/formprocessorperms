@@ -20,7 +20,7 @@ min_coverage=80
 # lib.sh is the host-side E2E helper (docker compose exec, maildev): this
 # repo's suites run INSIDE the container via `cv scr` / bash, where its cv()
 # wrapper would shadow the real cv.
-template_custom=.docker/docker-compose.ci.yml,tests/e2e/lib.sh -- CI stack publishes a port for the HTTP e2e; the e2e suites run inside the container, so the host-side lib.sh helpers are dead code there
+template_custom=tests/e2e/lib.sh -- the e2e suites run inside the container, so the host-side lib.sh helpers are dead code there
 
 # Business hooks live in scan classes (AutoSubscriber/HookInterface); the
 # classic function form is reserved for pre-boot/lifecycle/return-value hooks.

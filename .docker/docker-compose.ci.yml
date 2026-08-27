@@ -1,18 +1,26 @@
-# CI stack — CiviCRM Standalone via civikitchen. Booted, tested against,
-# thrown away: no persistent volume.
+# CI stack — standalone, NOT an override of docker-compose.yml. App + db
+# only: no ports, no SMTP sink, no sibling mounts (CI checks out this
+# extension alone; unit tests use stub mailers, integrations are covered by
+# the E2E suites, which run locally against the full dev stack).
 #
 #   docker compose -f .docker/docker-compose.ci.yml up -d --wait
-#   docker compose -f .docker/docker-compose.ci.yml exec -T -e CIVICRM_UF=UnitTests app \
-#     bash -c 'cd /var/www/html/ext/formprocessorperms && phpunit'
+#   docker compose -f .docker/docker-compose.ci.yml exec -T -u www-data app bash -c \
+#     'cd /var/www/html/ext/formprocessorperms && CIVICRM_UF=UnitTests phpunit --coverage-text tests/phpunit && phpstan analyse'
 #
-# DEVIATION from the civikitchen template (declared in .ckconform as
-# template_custom): port 8080 is published because
-# tests/e2e/e2e-http-standalone.sh drives the real authx/REST path over HTTP.
-# Everything else is the template — keep it that way. form-processor and
-# action-provider arrive through info.xml <requires>, installed by the entrypoint.
+# Keep image tag and db version in sync with docker-compose.yml.
+#
+# :v1 is the released contract image — the same version the CI workflow is
+# pinned to (@v1). Set CIVIKITCHEN_IMAGE to override, either in the environment
+# or via the shared workflow's `image` input.
 
-# Explicit project name: compose otherwise derives it from the parent
-# directory, which is `.docker` in every repo here.
+# Explicit project name: compose otherwise derives it from the directory, and
+# every extension keeps its stacks in .docker/ — unnamed, they all become one
+# project called "docker" and share volumes across checkouts.
+#
+# The two marked blocks are template-managed (ckinit --update refreshes them);
+# between them the repo adds what only it needs, e.g. a sibling mount:
+#       - ../../sibling:/var/www/html/ext/sibling:ro
+# BEGIN CIVIKITCHEN MANAGED app
 name: formprocessorperms-ci
 
 services:
@@ -22,20 +30,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "8080:80"
+    # DB connection = image defaults (db / civicrm), matching the db service.
     environment:
       CIVICRM_AUTO_INSTALL: "1"
-      CIVICRM_DB_HOST: db
-      CIVICRM_DB_NAME: civicrm
-      CIVICRM_DB_USER: civicrm
-      CIVICRM_DB_PASSWORD: civicrm
       CIVIKITCHEN_SITE_URL: "http://localhost:8080"
-      CIVIKITCHEN_ENABLE_EXTENSIONS: "formprocessorperms"
     volumes:
+      # Mounted under ext/ → enabled on first boot, <requires> resolved.
       - ..:/var/www/html/ext/formprocessorperms
       - ./init.d:/civikitchen-init.d:ro
+# END CIVIKITCHEN MANAGED app
+    # tests/e2e/e2e-http-standalone.sh drives the real authx/REST path over HTTP.
+    ports:
+      - "8080:80"
 
+# BEGIN CIVIKITCHEN MANAGED db
   db:
     image: mariadb:10.11
     environment:
@@ -44,10 +52,10 @@ services:
       MYSQL_USER: civicrm
       MYSQL_PASSWORD: civicrm
     volumes:
-      # Headless tests need global grants for the <db>_test scratch database.
       - ./db-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
       retries: 10
+# END CIVIKITCHEN MANAGED db
