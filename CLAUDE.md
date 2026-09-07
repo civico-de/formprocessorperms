@@ -35,5 +35,5 @@ docker compose -f .docker/docker-compose.ci.yml exec -T app \
   bash -c "cd /var/www/html/ext/formprocessorperms && cv scr tests/e2e/e2e.php && tests/e2e/e2e-http-standalone.sh"
 ```
 
-Template-managed files come from civikitchen (`.ckconform` records the two
+Template-managed files come from civikitchen (`civikitchen.yaml` records the
 deviations); refresh with `tools/ckinit.php --update .` from a checkout.
