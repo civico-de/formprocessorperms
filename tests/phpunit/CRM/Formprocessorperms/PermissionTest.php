@@ -8,17 +8,9 @@ use Civi\Test\TransactionalInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Checks that permission strings configured on Form Processor instances are
- * registered via hook_civicrm_permission.
- *
- * Note: the Standalone-specific effect (unregistered permissions being
- * silently stripped from Role.permissions on save) cannot be asserted here —
- * the headless UF is 'UnitTests', not 'Standalone', so civicrm_role does not
- * exist. This test covers the registration half; the strip/persist behavior
- * was verified manually against a Standalone instance.
- *
- * The civicrm_api3() fixtures are deliberate: FormProcessorInstance is
- * APIv3-only.
+ * Registration half only: the Standalone strip-on-save effect needs
+ * civicrm_role, which the 'UnitTests' UF lacks — tests/e2e/e2e.php covers it.
+ * civicrm_api3() is deliberate: FormProcessorInstance is APIv3-only.
  *
  * @group headless
  */

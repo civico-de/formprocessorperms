@@ -7,12 +7,9 @@ use Civi\Test\HeadlessInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Covers the two defensive paths of the permission hook: the window where
- * form_processor's table is absent, and a query that really fails.
- *
- * Not transactional on purpose — both cases are staged with DDL (implicit
- * commit), so the table is renamed aside and restored in a finally block
- * instead. The real table is never altered.
+ * Defensive paths of the permission hook: table absent, query failing.
+ * Not transactional: the cases are staged with DDL (implicit commit), so the
+ * real table is renamed aside and restored in a finally block.
  *
  * @group headless
  */
@@ -40,7 +37,6 @@ class CRM_Formprocessorperms_PermissionFailureTest extends TestCase implements H
       CRM_Core_DAO::executeQuery('RENAME TABLE ' . self::BACKUP . ' TO ' . self::TABLE);
     }
 
-    // Restored: the hook reads the real table again.
     $this->assertSame([], $this->invokeHook());
   }
 

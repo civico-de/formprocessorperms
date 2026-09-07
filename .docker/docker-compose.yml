@@ -1,25 +1,14 @@
-# formprocessorperms dev stack — CiviCRM (civikitchen standalone) + MariaDB + maildev
-# + phpMyAdmin.
-#
-# Usage:
-#   cd .docker && docker compose up -d        # first boot: auto-install + provisioning
-#
-# URLs:  CiviCRM http://localhost:8080 (admin/admin)
-#        maildev http://localhost:1080 · phpMyAdmin http://localhost:8081
-#
-# Re-provision from scratch (re-runs init.d hooks): docker compose down -v && up -d
+# Dev stack: `cd .docker && docker compose up -d` (first boot installs + provisions;
+# `down -v` re-provisions). CiviCRM :8080 (admin/admin), maildev :1080, phpMyAdmin :8081.
 
-# Explicit project name — unnamed .docker/ stacks all become one project
-# called "docker" and share volumes across checkouts.
+# Unnamed .docker/ stacks all become project "docker" and share volumes across checkouts.
 name: formprocessorperms
 
 services:
   app:
     image: ${CIVIKITCHEN_IMAGE:-ghcr.io/jfilter/civikitchen:v1}
-    # :v1 is the released contract image, matching the @v1 CI pin. Override
-    # CIVIKITCHEN_IMAGE to pin a specific CiviCRM minor (e.g.
-    # ghcr.io/jfilter/civikitchen:standalone-6.15) for this extension. Always
-    # pull so a stale local layer doesn't mask entrypoint fixes.
+    # :v1 matches the @v1 CI pin; CIVIKITCHEN_IMAGE pins a CiviCRM minor (e.g.
+    # civikitchen:standalone-6.15). Always pull so a stale layer cannot mask fixes.
     pull_policy: always
     depends_on:
       db:
@@ -38,18 +27,13 @@ services:
       # Outbound mail lands in maildev.
       CIVIKITCHEN_SMTP_HOST: maildev
       CIVIKITCHEN_SMTP_PORT: "1025"
-      # Enable the mounted extension reproducibly on first boot. Add sibling
-      # extensions here (comma-separated) instead of coupling them in info.xml
-      # when the integration is optional by design.
-      # form-processor + action-provider (info.xml <requires>) are installed by
-      # the entrypoint — nothing to add here.
+      # Comma-separated; optional sibling extensions go here, not into info.xml.
+      # The <requires> (form-processor, action-provider) are installed by the entrypoint.
       CIVIKITCHEN_ENABLE_EXTENSIONS: "formprocessorperms"
     volumes:
       - ..:/var/www/html/ext/formprocessorperms
-      # Sibling extension example (mount + add to CIVIKITCHEN_ENABLE_EXTENSIONS):
-      # - ../../othersibling:/var/www/html/ext/othersibling
-      # First-boot provisioning hooks (seed data, API users, settings) — run
-      # after install + ext:enable, in lexical order. See init.d/README.md.
+      # Sibling example: - ../../othersibling:/var/www/html/ext/othersibling
+      # First-boot hooks, run after install + ext:enable in lexical order (init.d/README.md).
       - ./init.d:/civikitchen-init.d:ro
 
   db:
@@ -61,7 +45,6 @@ services:
       MYSQL_PASSWORD: civicrm
     volumes:
       - db-data:/var/lib/mysql
-      # Global grants so headless tests can (re)create the civicrm_test scratch DB.
       - ./db-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]

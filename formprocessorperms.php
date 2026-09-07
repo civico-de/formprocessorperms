@@ -38,15 +38,10 @@ function formprocessorperms_civicrm_enable(): void {
 /**
  * Implements hook_civicrm_permission().
  *
- * Registers the per-processor permission strings configured on Form Processor
- * instances. form_processor enforces them (hook_civicrm_alterAPIPermissions)
- * but never registers them, so on Standalone they are silently stripped from
- * roles on save, and on Drupal they never appear in the permissions UI.
- *
- * Reads via direct SQL: this hook runs while the permission list is being
- * built, so an API call here would recurse into permission checking. The
- * table check covers the window where form_processor is absent or not yet
- * installed; the try/catch covers the race and reports anything else.
+ * form_processor enforces its per-instance permission strings but never
+ * registers them, so Standalone strips them from roles on save and Drupal
+ * never lists them. Direct SQL: an API call here recurses into permission
+ * checking. The table check covers form_processor being absent.
  *
  * @param array<string, mixed> $permissions
  */
@@ -61,15 +56,15 @@ function formprocessorperms_civicrm_permission(array &$permissions): void {
           "SELECT title, permission FROM civicrm_form_processor_instance
            WHERE permission IS NOT NULL AND permission <> ''",
         );
-        // The WHERE clause is what makes `permission` a non-empty string here.
+        // Non-empty `permission` is guaranteed by the WHERE clause.
         /** @var \CRM_Core_DAO&object{permission: string, title: string} $dao */
         while ($dao->fetch()) {
           $cache[$dao->permission] = $dao->title;
         }
       }
       catch (\Throwable $e) {
-        // The table was there a moment ago, so this is a real failure: the
-        // permissions would silently vanish from every role screen.
+        // The table exists, so this is a real failure that would silently
+        // drop the permissions from every role screen.
         \Civi::log()->error('formprocessorperms: reading form processor permissions failed', [
           'exception' => $e,
         ]);

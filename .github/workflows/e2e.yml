@@ -1,8 +1,6 @@
-# Repo-specific end-to-end suites, on top of the shared pipeline in ci.yml
-# (which runs cklint/ckconform/ckfmt/phpunit+coverage/phpstan). What lives here
-# is what the shared workflow cannot know: the live-site permission round-trip,
-# the authx/REST path over HTTP, and the CMS matrix — the Drupal permissions UI
-# is half of what this extension exists for.
+# Repo-specific E2E suites beside the shared pipeline in ci.yml: live-site
+# permission round-trip, authx/REST over HTTP, and the CMS matrix (the Drupal
+# permissions UI is half of what this extension exists for).
 name: E2E
 
 on:
@@ -94,9 +92,7 @@ jobs:
           docker compose -f .docker/docker-compose.ci-cms.yml exec -T app \
             bash -c "cd /home/buildkit/buildkit/build/site/web && cv scr ${{ matrix.ext_base }}/formprocessorperms/tests/e2e/e2e.php"
 
-      # Drupal-specific: the registered permission must surface in Drupal's
-      # own permission list (People → Permissions), which is the second half
-      # of what this extension exists for.
+      # The registered permission must surface in Drupal's own permission list.
       - name: Check Drupal permissions UI advertises the permission
         if: ${{ matrix.drupal }}
         run: |

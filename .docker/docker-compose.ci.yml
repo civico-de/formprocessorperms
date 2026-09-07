@@ -1,25 +1,13 @@
-# CI stack — standalone, NOT an override of docker-compose.yml. App + db
-# only: no ports, no SMTP sink, no sibling mounts (CI checks out this
-# extension alone; unit tests use stub mailers, integrations are covered by
-# the E2E suites, which run locally against the full dev stack).
+# CI stack — standalone, not an override of docker-compose.yml. Keep image tag
+# and db version in sync with it; :v1 matches the workflow's @v1 pin.
 #
 #   docker compose -f .docker/docker-compose.ci.yml up -d --wait
 #   docker compose -f .docker/docker-compose.ci.yml exec -T -u www-data app bash -c \
 #     'cd /var/www/html/ext/formprocessorperms && CIVICRM_UF=UnitTests phpunit --coverage-text tests/phpunit && phpstan analyse'
 #
-# Keep image tag and db version in sync with docker-compose.yml.
-#
-# :v1 is the released contract image — the same version the CI workflow is
-# pinned to (@v1). Set CIVIKITCHEN_IMAGE to override, either in the environment
-# or via the shared workflow's `image` input.
-
-# Explicit project name: compose otherwise derives it from the directory, and
-# every extension keeps its stacks in .docker/ — unnamed, they all become one
-# project called "docker" and share volumes across checkouts.
-#
-# The two marked blocks are template-managed (ckinit --update refreshes them);
-# between them the repo adds what only it needs, e.g. a sibling mount:
-#       - ../../sibling:/var/www/html/ext/sibling:ro
+# Unnamed .docker/ stacks all become project "docker" and share volumes across checkouts.
+# The marked blocks are template-managed (ckinit --update); repo-specific
+# additions such as sibling mounts go between them.
 # BEGIN CIVIKITCHEN MANAGED app
 name: formprocessorperms-ci
 

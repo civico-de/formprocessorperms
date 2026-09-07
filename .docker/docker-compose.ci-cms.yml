@@ -1,14 +1,8 @@
-# CMS-flavor CI stack (Drupal 10/11, WordPress, Joomla) via civikitchen
-# buildkit images. First boot runs `civibuild reinstall`; the image HEALTHCHECK
-# turns healthy once the site is provisioned, so `up -d --wait` blocks until
-# ready. The workflow matrix supplies IMAGE and CK_EXT_BASE (the flavor's
-# CiviCRM extensionsDir).
-#
-# Not a civikitchen template file: the CMS matrix is this repo's own, because
-# the Drupal permissions UI is half of what the extension exists for.
+# CMS-flavor CI stack (civikitchen buildkit images); not template-managed.
+# The HEALTHCHECK turns healthy once `civibuild reinstall` is done, so `up -d --wait`
+# blocks until ready. The workflow matrix supplies IMAGE and CK_EXT_BASE.
 
-# Explicit project name — unnamed .docker/ stacks all become one project
-# called "docker" and share volumes across checkouts.
+# Unnamed .docker/ stacks all become project "docker" and share volumes across checkouts.
 name: formprocessorperms-ci-cms
 
 services:

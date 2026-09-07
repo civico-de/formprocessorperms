@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
-# Real HTTP enforcement test (Standalone): an authx api_key user whose role
-# lacks the processor permission must get an authorization error from the
-# api3 REST endpoint; after adding the permission to the role, the call must
-# pass the gate. Assumes tests/e2e/e2e.php ran first (creates processor
-# e2e_fp with permission 'e2e fp perm').
-#
-# Usage (inside the container): tests/e2e/e2e-http-standalone.sh [base-url]
+# HTTP enforcement test (Standalone): an authx api_key user is rejected without
+# the processor permission and passes with it. Needs the e2e_fp processor from
+# tests/e2e/e2e.php. Usage (inside the container): $0 [base-url]
 set -euo pipefail
 
 BASE_URL="${1:-http://localhost}"

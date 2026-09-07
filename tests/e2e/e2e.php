@@ -3,15 +3,11 @@
 declare(strict_types = 1);
 
 /**
- * End-to-end check, run against a real installed site: `cv scr tests/e2e/e2e.php`
+ * End-to-end check against a real installed site: `cv scr tests/e2e/e2e.php`
  *
- * Creates a form processor with a custom permission string and asserts that
- * formprocessorperms registers it. On Standalone additionally asserts the
- * original bug is fixed: the permission survives a Role save instead of being
- * silently stripped.
- *
- * The civicrm_api3() calls are deliberate: FormProcessorInstance and the
- * permission gate under test are APIv3-only.
+ * Creates a form processor with a permission string, asserts it is registered
+ * and enforced, and on Standalone that it survives a Role save.
+ * civicrm_api3() is deliberate: FormProcessorInstance is APIv3-only.
  */
 
 $fail = function (string $msg): void {
@@ -33,8 +29,7 @@ if (empty($existing['count'])) {
 }
 
 civicrm_api3('System', 'flush', []);
-// In-process: make sure neither our hook cache nor core's permission cache
-// serves a pre-create snapshot.
+// Neither the hook cache nor core's permission cache may serve a stale snapshot.
 unset(\Civi::$statics['formprocessorperms']);
 unset(\Civi::$statics['CRM_Core_Permission']);
 \Civi::cache('metadata')->clear();
@@ -45,10 +40,8 @@ if (!isset($permissions[$perm])) {
 }
 echo "registered: '{$perm}'\n";
 
-// Enforcement: form_processor's alterAPIPermissions gate must reject a caller
-// without the permission and accept one with it. Simulated in-process via a
-// fake permission class; the real HTTP/authx path is covered separately on
-// Standalone (tests/e2e/e2e-http-standalone.sh).
+// Enforcement via a fake permission class; the real HTTP/authx path is
+// covered by tests/e2e/e2e-http-standalone.sh.
 $config = CRM_Core_Config::singleton();
 $origPermClass = $config->userPermissionClass;
 $fake = new CRM_Core_Permission_UnitTests();
@@ -74,7 +67,6 @@ try {
     }
     catch (\Throwable $e) {
       if (stripos($e->getMessage(), 'authoriz') === FALSE && stripos($e->getMessage(), 'permission') === FALSE) {
-        // $fail() exits, so reaching the next line means the call was denied.
         $fail("{$apiVersion} call without permission failed for an unexpected reason: " . $e->getMessage());
       }
       $denied = TRUE;
@@ -92,9 +84,8 @@ try {
       if (stripos($e->getMessage(), 'authoriz') !== FALSE) {
         $fail("{$apiVersion} call WITH the permission was still rejected: " . $e->getMessage());
       }
-
-      // Any non-authorization error (e.g. the empty processor has no actions)
-      // means the permission gate itself passed — good enough here.
+      // Any other error (e.g. the empty processor has no actions) means the
+      // permission gate itself passed.
     }
     echo "enforcement ({$apiVersion}): call with '{$perm}' passed the permission gate\n";
   }
