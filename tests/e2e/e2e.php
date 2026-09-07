@@ -84,6 +84,7 @@ try {
       if (stripos($e->getMessage(), 'authoriz') !== FALSE) {
         $fail("{$apiVersion} call WITH the permission was still rejected: " . $e->getMessage());
       }
+
       // Any other error (e.g. the empty processor has no actions) means the
       // permission gate itself passed.
     }
