@@ -3,8 +3,11 @@
 declare(strict_types = 1);
 
 /**
- * phpstan bootstrap: CiviCRM core's class loader plus the classes of every
- * <requires> extension present under CK_EXT_DIR (civikitchen container layout).
+ * phpstan bootstrap: register CiviCRM's class loader so core symbols
+ * (Civi, CRM_*, Civi\Api4\*) resolve, then the classes of every extension
+ * this one <requires> that is present under the ext dir. Runs inside the dev
+ * container (civikitchen standalone layout); override CIVICRM_CORE_DIR and
+ * CK_EXT_DIR if needed.
  */
 $coreDir = getenv('CIVICRM_CORE_DIR') ?: '/var/www/html/core';
 
@@ -16,8 +19,12 @@ require_once $coreDir . '/api/api.php';
 // Settings-defined runtime constant; phpstan only needs it to exist.
 defined('CIVICRM_UF_BASEURL') || define('CIVICRM_UF_BASEURL', 'http://localhost');
 
-// Required extensions live off core's classloader path; a missing one is only
-// noted so phpstan reports "unknown class" instead of the bootstrap dying.
+// Required extensions live off core's classloader path. Each one mounted or
+// downloaded under the ext dir (named by its key, as the images do) gets the
+// civix layout autoloaded: CRM_* by underscore, Civi\* PSR-4, api_* by
+// underscore, plus its own vendor/. A required key with no directory is only
+// noted — analysis of code that never touches it is still complete, and code
+// that does gets phpstan's honest "unknown class".
 $ckExtDir = getenv('CK_EXT_DIR') ?: '/var/www/html/ext';
 libxml_use_internal_errors(use_errors: TRUE);
 $ckInfo = simplexml_load_file(__DIR__ . '/info.xml');
