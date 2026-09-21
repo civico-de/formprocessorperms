@@ -1,6 +1,9 @@
 $schema: https://raw.githubusercontent.com/jfilter/civikitchen/main/packages/civikitchen-scenario-schema/scenario.schema.json
 version: 1
 policy:
+  release:
+    mode: none
+    reason: 'TODO: not released yet; switch to the managed release caller with the first release'
   # Expected values for ckconform.
   license: Proprietary
   npm_license: UNLICENSED
