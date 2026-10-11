@@ -2,9 +2,7 @@
 
 declare(strict_types = 1);
 
-// phpcs:disable PSR1.Files.SideEffects
 require_once 'formprocessorperms.civix.php';
-// phpcs:enable
 
 use CRM_Formprocessorperms_ExtensionUtil as E;
 
