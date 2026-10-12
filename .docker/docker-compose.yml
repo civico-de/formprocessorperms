@@ -24,6 +24,10 @@ services:
       # Must match the host:port opened in the browser (asset URLs).
       CIVIKITCHEN_SITE_URL: "http://localhost:8080"
       CIVIKITCHEN_DEMO_USER: admin
+      # Dependencies, config, seed records and API users: profiles/dev/profile.json.
+      CIVIKITCHEN_PROFILE: dev
+      CIVIKITCHEN_PROFILE_PATH: /civikitchen-profiles
+      CIVIKITCHEN_TRUST_EXTERNAL_PROFILES: "1"
       # Outbound mail lands in maildev.
       CIVIKITCHEN_SMTP_HOST: maildev
       CIVIKITCHEN_SMTP_PORT: "1025"
@@ -32,6 +36,7 @@ services:
       CIVIKITCHEN_ENABLE_EXTENSIONS: "formprocessorperms"
     volumes:
       - ..:/var/www/html/ext/formprocessorperms
+      - ./profiles:/civikitchen-profiles:ro
       # Sibling example: - ../../othersibling:/var/www/html/ext/othersibling
       # First-boot hooks, run after install + ext:enable in lexical order (init.d/README.md).
       - ./init.d:/civikitchen-init.d:ro
