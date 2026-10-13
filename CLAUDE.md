@@ -23,17 +23,16 @@ strings merely never appear in the permissions UI.
 
 ## Verify
 
-CI is the shared civikitchen pipeline (`.github/workflows/ci.yml` → cklint,
-ckconform, ckfmt, phpunit + coverage, phpstan) plus this repo's own E2E
-workflow (Standalone + CMS matrix). The same paths work locally:
+CI is the shared civikitchen pipeline (`.github/workflows/ci.yml`, every gate `ck ci`
+runs) plus this repo's own E2E workflow (Standalone + CMS matrix). The same
+paths work locally in the civikitchen image:
 
 ```bash
-docker compose -f .docker/docker-compose.ci.yml up -d
-docker compose -f .docker/docker-compose.ci.yml exec -T -e CIVICRM_UF=UnitTests app \
-  bash -c "cd /var/www/html/ext/formprocessorperms && ckcoverage && cklint --all && ckconform && phpstan analyse"
+docker compose -f .docker/docker-compose.ci.yml up -d --wait
+docker compose -f .docker/docker-compose.ci.yml exec -w /var/www/html/ext/formprocessorperms app ck ci
 docker compose -f .docker/docker-compose.ci.yml exec -T app \
   bash -c "cd /var/www/html/ext/formprocessorperms && cv scr tests/e2e/e2e.php && tests/e2e/e2e-http-standalone.sh"
 ```
 
 Template-managed files come from civikitchen (`civikitchen.yaml` records the
-deviations); refresh with `tools/ckinit.php --update .` from a checkout.
+deviations); refresh with `scaffold/ckinit.php --update <this repo>` from a civikitchen checkout.
