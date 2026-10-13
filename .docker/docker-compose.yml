@@ -6,7 +6,7 @@ name: formprocessorperms
 
 services:
   app:
-    image: ${CIVIKITCHEN_IMAGE:-ghcr.io/jfilter/civikitchen:v1}
+    image: ${CIVIKITCHEN_IMAGE:-ghcr.io/civico-de/civikitchen:v1}
     # :v1 matches the @v1 CI pin; CIVIKITCHEN_IMAGE pins a CiviCRM minor (e.g.
     # civikitchen:standalone-6.15). Always pull so a stale layer cannot mask fixes.
     pull_policy: always

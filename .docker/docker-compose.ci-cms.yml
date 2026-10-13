@@ -7,7 +7,7 @@ name: formprocessorperms-ci-cms
 
 services:
   app:
-    image: ${IMAGE:-ghcr.io/jfilter/civikitchen:drupal10}
+    image: ${IMAGE:-ghcr.io/civico-de/civikitchen:drupal10}
     pull_policy: always
     depends_on:
       db:
