@@ -14,8 +14,8 @@
   <urls>
     <url desc="Main Extension Page">https://github.com/civico-de/formprocessorperms</url>
   </urls>
-  <releaseDate>2026-07-21</releaseDate>
-  <version>1.0.0</version>
+  <releaseDate>2026-10-30</releaseDate>
+  <version>1.0.1</version>
   <develStage>stable</develStage>
   <compatibility mode="semver">
     <comments>Semantic versioning. For example, compatibility with "6.1" implies compatibility with "6.2".</comments>
