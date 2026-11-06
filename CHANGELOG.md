@@ -4,8 +4,6 @@
 
 ## [1.0.1] - 2026-10-30
 
-First tagged release.
-
 ### Added
 
 - Registers every permission string configured on a Form Processor instance through
