@@ -24,4 +24,4 @@ policy:
 
   untagged_versions:
     - version: "1.0.0"
-      reason: shipped to the LiMA instance from the checkout before the release workflow existed; first release is 1.0.1
+      reason: deployed from a checkout before the release workflow existed; first release is 1.0.1
