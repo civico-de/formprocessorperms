@@ -22,9 +22,14 @@ This extension reads the configured permission strings from
 `civicrm_form_processor_instance` and registers each one. That makes them assignable on
 Standalone and visible in the Drupal permissions UI.
 
-## Usage
+## Install
 
-Install and enable it alongside `form-processor`. There is no configuration.
+Requires `form-processor` and `action-provider`. The supported CiviCRM and PHP versions are in
+`info.xml`. Download the zip from the
+[releases page](https://github.com/civico-de/formprocessorperms/releases), unpack it into the
+extensions directory and enable it. There is no configuration.
+
+## Usage
 
 - After creating or changing a form processor's permission, flush caches with `cv flush`
   (on Drupal also the Drupal cache) so the new string is registered.
@@ -32,3 +37,25 @@ Install and enable it alongside `form-processor`. There is no configuration.
   the next role save.
 - An API user additionally needs `authenticate with api key` (authx) and
   `access CiviCRM backend and API`. Those are separate from the per-processor permission.
+
+## Development
+
+The permission hook reads `civicrm_form_processor_instance` with direct SQL: it runs while the
+permission list is being built, and an API call there would recurse into permission checking.
+Its table check covers the window where `form-processor` is disabled underneath.
+
+CI runs every civikitchen gate (`ck ci`) and this repository's E2E workflow on Standalone and the
+CMS flavors. Locally, in the civikitchen image:
+
+```bash
+docker compose -f .docker/docker-compose.ci.yml up -d --wait
+docker compose -f .docker/docker-compose.ci.yml exec -w /var/www/html/ext/formprocessorperms app ck ci
+docker compose -f .docker/docker-compose.ci.yml exec -T app \
+  bash -c "cd /var/www/html/ext/formprocessorperms && cv scr tests/e2e/e2e.php && tests/e2e/e2e-http-standalone.sh"
+```
+
+## License and support
+
+AGPL-3.0-or-later. © civico GmbH. See [LICENSE.txt](LICENSE.txt). Report bugs in the
+[issue tracker](https://github.com/civico-de/formprocessorperms/issues). Report security issues by
+email to security@civico.de, not in a public issue; see [SECURITY.md](SECURITY.md).
