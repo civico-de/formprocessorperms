@@ -2,8 +2,7 @@ $schema: https://raw.githubusercontent.com/civico-de/civikitchen/main/packages/c
 version: 1
 policy:
   # Expected values for ckconform.
-  license: Proprietary
-  npm_license: UNLICENSED
+  license: AGPL-3.0-or-later
   copyright: 'civico GmbH'
 
   # The permission hook incl. its failure paths is covered; the uncovered rest is

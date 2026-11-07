@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Licensed under AGPL-3.0-or-later.
+
 ## [1.0.1] - 2026-10-30
 
 ### Added
