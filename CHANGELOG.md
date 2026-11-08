@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- User handbook in English and German, shown by the handbook extension and published as the
+  documentation site.
+
 ### Changed
 
 - Licensed under AGPL-3.0-or-later.
