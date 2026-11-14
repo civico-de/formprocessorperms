@@ -1,6 +1,5 @@
 {
     "name": "civico-de/formprocessorperms",
-    "description": "Registers the per-processor permission strings of the Form Processor extension via hook_civicrm_permission.",
     "type": "civicrm-ext",
     "license": "AGPL-3.0-or-later",
     "authors": [
