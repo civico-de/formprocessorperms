@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-14
+
 ### Added
 
 - User handbook in English and German, shown by the handbook extension and published as the
@@ -27,5 +29,6 @@
 - A failing query for the configured permission strings is reported instead of being silently
   ignored.
 
-[Unreleased]: https://github.com/civico-de/formprocessorperms/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/civico-de/formprocessorperms/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/civico-de/formprocessorperms/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/civico-de/formprocessorperms/releases/tag/v1.0.1
