@@ -4,6 +4,8 @@ policy:
   # Expected values for ckconform.
   license: AGPL-3.0-or-later
   copyright: 'civico GmbH'
+  # Lowest CiviCRM minor info.xml may declare: the supported ESR.
+  civicrm_floor: "6.16"
 
   # The permission hook incl. its failure paths is covered; the uncovered rest is
   # the civix config/install/enable trio. Ratchet up, never down.

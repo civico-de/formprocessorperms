@@ -10,6 +10,7 @@
 ### Changed
 
 - Licensed under AGPL-3.0-or-later.
+- Requires CiviCRM 6.16 or newer.
 
 ## [1.0.1] - 2026-10-30
 

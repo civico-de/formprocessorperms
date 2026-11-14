@@ -21,7 +21,7 @@
   <develStage>stable</develStage>
   <compatibility mode="semver">
     <comments>Semantic versioning. For example, compatibility with "6.1" implies compatibility with "6.2".</comments>
-    <ver>6.0</ver>
+    <ver>6.16</ver>
   </compatibility>
   <php_compatibility mode="list">
     <comments>Listed versions. For example, specify both "8.1" and "8.2".</comments>
