@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- The manual lives in `docs/handbook/`. CiviCRM shows it with handbook 0.5.0 or newer.
+
 ## [2.0.0] - 2026-11-14
 
 ### Added
